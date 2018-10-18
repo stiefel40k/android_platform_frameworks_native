@@ -19,6 +19,8 @@
 
 #include <android/rect.h>
 
+#include <system/window.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
