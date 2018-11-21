@@ -671,8 +671,6 @@ status_t SurfaceFlinger::getDisplayInfo(const sp<IBinder>& display, DisplayInfo*
     const HWComposer& hwc(getHwComposer());
     float xdpi = hwc.getDpiX(type);
     float ydpi = hwc.getDpiY(type);
-    info->w = hwc.getWidth(type);
-    info->h = hwc.getHeight(type);
 
     // TODO: Not sure if display density should handled by SF any longer
     class Density {
@@ -687,36 +685,13 @@ status_t SurfaceFlinger::getDisplayInfo(const sp<IBinder>& display, DisplayInfo*
     public:
         static int getEmuDensity() {
             return getDensityFromProperty("qemu.sf.lcd_density"); }
-        static int getBuildDensity(DisplayInfo* info)  {
-            static int density = getDensityFromProperty("ro.sf.lcd_density");
-#if __i386__
-            if (density == 0) {
-                uint32_t area = info->w * info->h;
-                if (area <= 800 * 480) {
-                    density = 120;
-                } else if (area <= 1024 * 600) {
-                    density = 130;
-                } else if (area < 1024 * 768) {
-                    density = 140;
-                } else if (area < 1920 * 1080) {
-                    density = 160;
-                } else if (area < 2160 * 1440) {
-                    density = 240;
-                } else if (area < 2736 * 1824) {
-                    density = 280;
-                } else {
-                    density = 320;
-                }
-                ALOGI("auto set density to %d", density);
-            }
-#endif
-            return density;
-        }
+        static int getBuildDensity()  {
+            return getDensityFromProperty("ro.sf.lcd_density"); }
     };
 
     if (type == DisplayDevice::DISPLAY_PRIMARY) {
         // The density of the device is provided by a build property
-        float density = Density::getBuildDensity(info) / 160.0f;
+        float density = Density::getBuildDensity() / 160.0f;
         if (density == 0) {
             // the build doesn't provide a density -- this is wrong!
             // use xdpi instead
@@ -740,6 +715,8 @@ status_t SurfaceFlinger::getDisplayInfo(const sp<IBinder>& display, DisplayInfo*
         info->orientation = 0;
     }
 
+    info->w = hwc.getWidth(type);
+    info->h = hwc.getHeight(type);
     info->xdpi = xdpi;
     info->ydpi = ydpi;
     info->fps = float(1e9 / hwc.getRefreshPeriod(type));
@@ -761,20 +738,6 @@ sp<IDisplayEventConnection> SurfaceFlinger::createDisplayEventConnection() {
 void SurfaceFlinger::waitForEvent() {
     mEventQueue.waitMessage();
 }
-
-#ifdef CONSOLE_MANAGER
-void SurfaceFlinger::screenReleased(const sp<IBinder>& display) {
-    // this may be called by a signal handler, we can't do too much in here
-    blank(display);
-    mEventQueue.invalidate();
-}
-
-void SurfaceFlinger::screenAcquired(const sp<IBinder>& display) {
-    // this may be called by a signal handler, we can't do too much in here
-    unblank(display);
-    mEventQueue.invalidate();
-}
-#endif
 
 void SurfaceFlinger::signalTransaction() {
     mEventQueue.invalidate();

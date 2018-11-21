@@ -33,9 +33,6 @@
 #include <utils/Trace.h>
 #include <utils/CallStack.h>
 
-static const nsecs_t DEQUEUE_TIMEOUT_VALUE = seconds(5);
-
-
 // Macros for including the BufferQueue name in log messages
 #define ST_LOGV(x, ...) ALOGV("[%s] "x, mConsumerName.string(), ##__VA_ARGS__)
 #define ST_LOGD(x, ...) ALOGD("[%s] "x, mConsumerName.string(), ##__VA_ARGS__)
@@ -371,10 +368,7 @@ status_t BufferQueue::dequeueBuffer(int *outBuf, sp<Fence>* outFence, bool async
                     ST_LOGE("dequeueBuffer: would block! returning an error instead.");
                     return WOULD_BLOCK;
                 }
-                if (mDequeueCondition.waitRelative(mMutex, DEQUEUE_TIMEOUT_VALUE)) {
-                    ST_LOGE("dequeueBuffer: time out and will free all buffer!");
-                    freeAllBuffersLocked();
-                }
+                mDequeueCondition.wait(mMutex);
             }
         }
 

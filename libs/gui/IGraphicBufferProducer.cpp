@@ -112,12 +112,7 @@ public:
         if (result != NO_ERROR) {
             return result;
         }
-        const void *out_data =reply.readInplace(sizeof(*output));
-        if(out_data != NULL) {
-            memcpy(output, out_data, sizeof(*output));
-        } else {
-            return BAD_VALUE;
-        }
+        memcpy(output, reply.readInplace(sizeof(*output)), sizeof(*output));
         result = reply.readInt32();
         return result;
     }
@@ -154,12 +149,7 @@ public:
         if (result != NO_ERROR) {
             return result;
         }
-        const void *out_data =reply.readInplace(sizeof(*output));
-        if(out_data != NULL) {
-            memcpy(output, out_data, sizeof(*output));
-        } else {
-            return BAD_VALUE;
-        }
+        memcpy(output, reply.readInplace(sizeof(*output)), sizeof(*output));
         result = reply.readInt32();
         return result;
     }

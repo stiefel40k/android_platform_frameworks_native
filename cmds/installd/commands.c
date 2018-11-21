@@ -674,13 +674,9 @@ int dexopt(const char *apk_path, uid_t uid, int is_public)
     /* Before anything else: is there a .odex file?  If so, we have
      * precompiled the apk and there is nothing to do here.
      */
-    strcpy(out_path, apk_path);
-    end = strrchr(out_path, '.');
-    if (end != NULL) {
-        strcpy(end, ".odex");
-        if (stat(out_path, &dex_stat) == 0) {
-            return 0;
-        }
+    sprintf(out_path, "%s%s", apk_path, ".odex");
+    if (stat(out_path, &dex_stat) == 0) {
+        return 0;
     }
 
     if (create_cache_path(out_path, apk_path)) {
